@@ -1,1 +1,1 @@
-(tests (names readme) (libraries format_doc))
+(tests (names readme boxes) (libraries format_doc))

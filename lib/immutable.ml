@@ -87,14 +87,23 @@ let output_formatting_lit fmting_lit doc =
   | Escaped_percent           -> char '%' doc
   | Scan_indic c              -> doc |> char '@' |> char c
 
-let to_string doc =
+let to_buffer doc =
   let b = Buffer.create 20 in
   let convert = function
     | Data s -> Buffer.add_string b s
     | _ -> ()
   in
   fold (fun () x -> convert x) () doc;
-  Buffer.contents b
+  b
+
+let to_string doc = Buffer.contents (to_buffer doc)
+
+let box_string doc =
+  let b = to_buffer doc in
+  let len = Buffer.length b in
+  if len <= 2 then Buffer.contents b
+  else
+    Buffer.sub b 1 (len-2)
 
 let rec compose_acc acc doc =
   let open CamlinternalFormat in
@@ -107,7 +116,7 @@ let rec compose_acc acc doc =
     doc |> open_tag (Format.String_tag tag)
   | Acc_formatting_gen (p, Acc_open_box acc') ->
     let doc = compose_acc p doc in
-    let box = to_string (compose_acc acc' empty) in
+    let box = box_string (compose_acc acc' empty) in
     let (indent, bty) = CamlinternalFormat.open_box_of_string box in
     doc |> open_box (box_type bty) indent
   | Acc_string_literal (p, s)
